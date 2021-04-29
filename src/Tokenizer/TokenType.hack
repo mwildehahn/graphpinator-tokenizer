@@ -1,53 +1,51 @@
 namespace Graphpinator\Tokenizer;
 
-final class TokenType
-{
-    use \Nette\StaticClass;
+final class TokenType {
 
-    public const NEWLINE = 'newline';
-    public const COMMENT = '#';
-    public const COMMA = ',';
+    const NEWLINE = 'newline';
+    const COMMENT = '#';
+    const COMMA = ',';
     // lexical
-    public const NAME = 'name';
-    public const VARIABLE = '$';
-    public const DIRECTIVE = '@';
-    public const INT = 'int literal';
-    public const FLOAT = 'float literal';
-    public const STRING = 'string literal';
+    const NAME = 'name';
+    const VARIABLE = '$';
+    const DIRECTIVE = '@';
+    const INT = 'int literal';
+    const FLOAT = 'float literal';
+    const STRING = 'string literal';
     // keywords
-    public const NULL = 'null';
-    public const TRUE = 'true';
-    public const FALSE = 'false';
-    public const QUERY = OperationType::QUERY;
-    public const MUTATION = OperationType::MUTATION;
-    public const SUBSCRIPTION = OperationType::SUBSCRIPTION;
-    public const FRAGMENT = 'fragment';
-    public const ON = 'on'; // type condition
+    const NULL = 'null';
+    const TRUE = 'true';
+    const FALSE = 'false';
+    const string QUERY = OperationType::QUERY;
+    const string MUTATION = OperationType::MUTATION;
+    const string SUBSCRIPTION = OperationType::SUBSCRIPTION;
+    const FRAGMENT = 'fragment';
+    const ON = 'on'; // type condition
     // type system keywords
-    public const SCHEMA = 'schema';
-    public const TYPE = 'type';
-    public const INTERFACE = 'interface';
-    public const UNION = 'union';
-    public const INPUT = 'input';
-    public const ENUM = 'enum';
-    public const SCALAR = 'scalar';
-    public const IMPLEMENTS = 'implements';
-    public const REPEATABLE = 'repeatable';
+    const SCHEMA = 'schema';
+    const TYPE = 'type';
+    const INTERFACE = 'interface';
+    const UNION = 'union';
+    const INPUT = 'input';
+    const ENUM = 'enum';
+    const SCALAR = 'scalar';
+    const IMPLEMENTS = 'implements';
+    const REPEATABLE = 'repeatable';
     // punctators
-    public const AMP = '&'; // implements
-    public const PIPE = '|'; // union
-    public const EXCL = '!'; // not null
-    public const PAR_O = '('; // argument, variable, directive
-    public const PAR_C = ')';
-    public const CUR_O = '{'; // selection set
-    public const CUR_C = '}';
-    public const SQU_O = '['; // list
-    public const SQU_C = ']';
-    public const ELLIP = '...'; // fragment spread
-    public const COLON = ':'; // argument, variable, directive, field alias
-    public const EQUAL = '='; // default value
+    const AMP = '&'; // implements
+    const PIPE = '|'; // union
+    const EXCL = '!'; // not null
+    const PAR_O = '('; // argument, variable, directive
+    const PAR_C = ')';
+    const CUR_O = '{'; // selection set
+    const CUR_C = '}';
+    const SQU_O = '['; // list
+    const SQU_C = ']';
+    const ELLIP = '...'; // fragment spread
+    const COLON = ':'; // argument, variable, directive, field alias
+    const EQUAL = '='; // default value
 
-    public const IGNORABLE = [
+    const dict<string, bool> IGNORABLE = dict[
         self::COMMA => true,
         self::COMMENT => true,
         self::NEWLINE => true,

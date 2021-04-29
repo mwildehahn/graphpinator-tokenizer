@@ -1,10 +1,9 @@
 namespace Graphpinator\Source;
 
-interface Source extends \Iterator
-{
-    public function hasChar() : bool;
+interface Source<T> extends \HH\KeyedIterator<int, T> {
+    public function hasChar(): bool;
 
-    public function getChar() : string;
+    public function getChar(): string;
 
-    public function getLocation() : \Graphpinator\Common\Location;
+    public function getLocation(): \Graphpinator\Common\Location;
 }

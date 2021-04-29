@@ -1,10 +1,10 @@
 namespace Graphpinator\Tokenizer;
 
-final class Tokenizer implements \Iterator
-{
-    use \Nette\SmartObject;
+use namespace HH\Lib\{C, Vec};
 
-    private const ESCAPE_MAP = [
+final class Tokenizer implements \HH\KeyedIterator<int, ?Token> {
+
+    const dict<string, string> ESCAPE_MAP = dict[
         '"' => '"',
         '\\' => '\\',
         '/' => '/',
@@ -15,35 +15,30 @@ final class Tokenizer implements \Iterator
         't' => "\u{0009}",
     ];
 
-    private \Graphpinator\Source\Source $source;
+    private \Graphpinator\Source\StringSource $source;
     private bool $skipNotRelevant;
     private ?Token $token = null;
     private ?int $tokenStartIndex = null;
 
-    public function __construct(\Graphpinator\Source\Source $source, bool $skipNotRelevant = true)
-    {
+    public function __construct(\Graphpinator\Source\StringSource $source, bool $skipNotRelevant = true) {
         $this->source = $source;
         $this->skipNotRelevant = $skipNotRelevant;
     }
 
-    public function current() : Token
-    {
+    public function current(): ?Token {
         return $this->token;
     }
 
-    public function key() : int
-    {
-        return $this->tokenStartIndex;
+    public function key(): int {
+        return $this->tokenStartIndex ?? 0;
     }
 
-    public function next() : void
-    {
+    public function next(): void {
         $this->loadToken();
     }
 
-    public function valid() : bool
-    {
-        if (!$this->token instanceof Token || !\is_int($this->tokenStartIndex)) {
+    public function valid(): bool {
+        if (!$this->token is Token || !($this->tokenStartIndex is int)) {
             return false;
         }
 
@@ -56,15 +51,13 @@ final class Tokenizer implements \Iterator
         return true;
     }
 
-    public function rewind() : void
-    {
+    public function rewind(): void {
         $this->source->rewind();
         $this->loadToken();
     }
 
-    private function loadToken() : void
-    {
-        $this->skipWhitespace();
+    private function loadToken(): void {
+        $this->skipWhiteSpace();
 
         if (!$this->source->hasChar()) {
             $this->token = null;
@@ -90,13 +83,20 @@ final class Tokenizer implements \Iterator
 
         switch ($this->source->getChar()) {
             case '"':
-                $quotes = $this->eatChars(static function (string $char) : bool {
-                    return $char === '"';
-                }, 3);
+                $quotes = $this->eatChars(
+                    static function(string $char): bool {
+                        return $char === '"';
+                    },
+                    3,
+                );
 
                 switch (\strlen($quotes)) {
                     case 1:
-                        $this->token = new \Graphpinator\Tokenizer\Token(TokenType::STRING, $location, $this->eatString($location));
+                        $this->token = new \Graphpinator\Tokenizer\Token(
+                            TokenType::STRING,
+                            $location,
+                            $this->eatString($location),
+                        );
 
                         return;
                     case 2:
@@ -104,12 +104,16 @@ final class Tokenizer implements \Iterator
 
                         return;
                     default:
-                        $this->token = new \Graphpinator\Tokenizer\Token(TokenType::STRING, $location, $this->eatBlockString($location));
+                        $this->token = new \Graphpinator\Tokenizer\Token(
+                            TokenType::STRING,
+                            $location,
+                            $this->eatBlockString($location),
+                        );
 
                         return;
                 }
 
-                // fallthrough
+            // fallthrough
             case \PHP_EOL:
                 $this->token = new \Graphpinator\Tokenizer\Token(TokenType::NEWLINE, $location);
                 $this->source->next();
@@ -157,7 +161,7 @@ final class Tokenizer implements \Iterator
 
                 return;
             case '.':
-                $dots = $this->eatChars(static function (string $char) : bool {
+                $dots = $this->eatChars(static function(string $char): bool {
                     return $char === '.';
                 });
 
@@ -173,8 +177,7 @@ final class Tokenizer implements \Iterator
         throw new \Graphpinator\Exception\Tokenizer\UnknownSymbol($location);
     }
 
-    private function createWordToken(\Graphpinator\Common\Location $location) : void
-    {
+    private function createWordToken(\Graphpinator\Common\Location $location): void {
         $value = $this->eatName();
 
         switch ($value) {
@@ -218,24 +221,23 @@ final class Tokenizer implements \Iterator
         }
     }
 
-    private function createNumericToken(\Graphpinator\Common\Location $location) : void
-    {
+    private function createNumericToken(\Graphpinator\Common\Location $location): void {
         $numberVal = $this->eatInt(true, false);
 
-        if ($this->source->hasChar() && \in_array($this->source->getChar(), ['.', 'e', 'E'], true)) {
+        if ($this->source->hasChar() && \in_array($this->source->getChar(), vec['.', 'e', 'E'], true)) {
             if ($this->source->getChar() === '.') {
                 $this->source->next();
-                $numberVal .= '.' . $this->eatInt(false, true);
+                $numberVal .= '.'.$this->eatInt(false, true);
             }
 
-            if ($this->source->hasChar() && \in_array($this->source->getChar(), ['e', 'E'], true)) {
+            if ($this->source->hasChar() && \in_array($this->source->getChar(), vec['e', 'E'], true)) {
                 $this->source->next();
 
                 if ($this->source->getChar() === '+') {
                     $this->source->next();
                 }
 
-                $numberVal .= 'e' . $this->eatInt(true, true);
+                $numberVal .= 'e'.$this->eatInt(true, true);
             }
 
             $this->token = new \Graphpinator\Tokenizer\Token(TokenType::FLOAT, $location, $numberVal);
@@ -248,22 +250,19 @@ final class Tokenizer implements \Iterator
         }
     }
 
-    private function skipWhiteSpace() : void
-    {
-        $this->eatChars(static function (string $char) : bool {
+    private function skipWhiteSpace(): void {
+        $this->eatChars(static function(string $char): bool {
             return $char !== \PHP_EOL && \ctype_space($char);
         });
     }
 
-    private function eatComment() : string
-    {
-        return $this->eatChars(static function (string $char) : bool {
+    private function eatComment(): string {
+        return $this->eatChars(static function(string $char): bool {
             return $char !== \PHP_EOL;
         });
     }
 
-    private function eatString(\Graphpinator\Common\Location $location) : string
-    {
+    private function eatString(\Graphpinator\Common\Location $location): string {
         $value = '';
 
         while ($this->source->hasChar()) {
@@ -277,8 +276,7 @@ final class Tokenizer implements \Iterator
                     return $value;
                 case '\\':
                     $value .= $this->eatEscapeChar();
-
-                    continue 2;
+                    break;
                 default:
                     $value .= $char;
             }
@@ -287,16 +285,18 @@ final class Tokenizer implements \Iterator
         throw new \Graphpinator\Exception\Tokenizer\StringLiteralWithoutEnd($location);
     }
 
-    private function eatBlockString(\Graphpinator\Common\Location $location) : string
-    {
+    private function eatBlockString(\Graphpinator\Common\Location $location): string {
         $value = '';
 
         while ($this->source->hasChar()) {
             switch ($this->source->getChar()) {
                 case '"':
-                    $quotes = $this->eatChars(static function (string $char) : bool {
-                        return $char === '"';
-                    }, 3);
+                    $quotes = $this->eatChars(
+                        static function(string $char): bool {
+                            return $char === '"';
+                        },
+                        3,
+                    );
 
                     if (\strlen($quotes) === 3) {
                         return $this->formatBlockString($value);
@@ -304,20 +304,23 @@ final class Tokenizer implements \Iterator
 
                     $value .= $quotes;
 
-                    continue 2;
+                    break;
                 case '\\':
                     $this->source->next();
-                    $quotes = $this->eatChars(static function (string $char) : bool {
-                        return $char === '"';
-                    }, 3);
+                    $quotes = $this->eatChars(
+                        static function(string $char): bool {
+                            return $char === '"';
+                        },
+                        3,
+                    );
 
                     if (\strlen($quotes) === 3) {
                         $value .= '"""';
                     } else {
-                        $value .= '\\' . $quotes;
+                        $value .= '\\'.$quotes;
                     }
 
-                    continue 2;
+                    break;
                 default:
                     $value .= $this->source->getChar();
                     $this->source->next();
@@ -327,23 +330,22 @@ final class Tokenizer implements \Iterator
         throw new \Graphpinator\Exception\Tokenizer\StringLiteralWithoutEnd($location);
     }
 
-    private function formatBlockString(string $value) : string
-    {
+    private function formatBlockString(string $value): string {
         $lines = \explode(\PHP_EOL, $value);
 
         while (\count($lines) > 0) {
-            $first = \array_key_first($lines);
+            $first = C\firstx($lines);
 
             if ($lines[$first] === '' || \ctype_space($lines[$first])) {
-                unset($lines[$first]);
+                $lines = Vec\drop($lines, 1);
 
                 continue;
             }
 
-            $last = \array_key_last($lines);
+            $last = C\lastx($lines);
 
             if ($lines[$last] === '' || \ctype_space($lines[$last])) {
-                unset($lines[$last]);
+                $lines = Vec\take($lines, C\count($lines) - 1);
 
                 continue;
             }
@@ -367,34 +369,36 @@ final class Tokenizer implements \Iterator
             }
         }
 
-        if (\in_array($commonWhitespace, [0, null], true)) {
+        if (\in_array($commonWhitespace, vec[0, null], true)) {
             return \implode(\PHP_EOL, $lines);
         }
 
-        $formattedLines = [];
+        $formattedLines = vec[];
 
         foreach ($lines as $line) {
-            $formattedLines[] = \substr($line, $commonWhitespace);
+            $formattedLines[] = \substr($line, $commonWhitespace ?? 0);
         }
 
         return \implode(\PHP_EOL, $formattedLines);
     }
 
-    private function eatEscapeChar() : string
-    {
+    private function eatEscapeChar(): string {
         $escapedChar = $this->source->getChar();
 
         if ($escapedChar === 'u') {
             $this->source->next();
-            $hexDec = $this->eatChars(static function (string $char) : bool {
-                return \ctype_xdigit($char);
-            }, 4);
+            $hexDec = $this->eatChars(
+                static function(string $char): bool {
+                    return \ctype_xdigit($char);
+                },
+                4,
+            );
 
             if (\strlen($hexDec) !== 4) {
                 throw new \Graphpinator\Exception\Tokenizer\StringLiteralInvalidEscape($this->source->getLocation());
             }
 
-            return \mb_chr(\hexdec($hexDec), 'utf8');
+            return \IntlChar::chr(\hexdec($hexDec));
         }
 
         $this->source->next();
@@ -406,20 +410,21 @@ final class Tokenizer implements \Iterator
         return self::ESCAPE_MAP[$escapedChar];
     }
 
-    private function eatInt(bool $negative, bool $leadingZeros) : string
-    {
+    private function eatInt(bool $negative, bool $leadingZeros): string {
         $sign = '';
 
         if ($this->source->getChar() === '-') {
             if (!$negative) {
-                throw new \Graphpinator\Exception\Tokenizer\NumericLiteralNegativeFraction($this->source->getLocation());
+                throw new \Graphpinator\Exception\Tokenizer\NumericLiteralNegativeFraction(
+                    $this->source->getLocation(),
+                );
             }
 
             $sign = '-';
             $this->source->next();
         }
 
-        $digits = $this->eatChars(static function (string $char) : bool {
+        $digits = $this->eatChars(static function(string $char): bool {
             return \ctype_digit($char);
         });
         $digitCount = \strlen($digits);
@@ -432,18 +437,16 @@ final class Tokenizer implements \Iterator
             throw new \Graphpinator\Exception\Tokenizer\NumericLiteralLeadingZero($this->source->getLocation());
         }
 
-        return $sign . $digits;
+        return $sign.$digits;
     }
 
-    private function eatName() : string
-    {
-        return $this->eatChars(static function (string $char) : bool {
+    private function eatName(): string {
+        return $this->eatChars(static function(string $char): bool {
             return $char === '_' || \ctype_alnum($char);
         });
     }
 
-    private function eatChars(callable $condition, int $limit = \PHP_INT_MAX) : string
-    {
+    private function eatChars((function(string): bool) $condition, int $limit = \PHP_INT_MAX): string {
         $value = '';
         $count = 0;
 
