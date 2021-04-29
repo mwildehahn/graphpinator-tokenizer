@@ -9,7 +9,7 @@ install: build
 hh_autoload:
 	docker run -v `pwd`:/app -it mwildehahn/graphpinator-tokenizer ./vendor/bin/hh-autoload
 
-test: hh_autoload
+test:
 	docker run -v `pwd`:/app -it mwildehahn/graphpinator-tokenizer ./vendor/bin/hacktest tests
 
 format:

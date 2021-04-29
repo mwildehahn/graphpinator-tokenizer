@@ -812,6 +812,7 @@ final class TokenizerTest extends \Facebook\HackTest\HackTest {
      * @param string $source
      * @param string $exception
      */
+    <<\Facebook\HackTest\DataProvider('invalidDataProvider')>>
     public function testInvalid(
         string $source,
         classname<\Graphpinator\Exception\Tokenizer\TokenizerError> $exception,

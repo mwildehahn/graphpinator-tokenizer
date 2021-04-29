@@ -36,6 +36,7 @@ final class SourceTest extends \Facebook\HackTest\HackTest {
      * @dataProvider simpleDataProvider
      * @param string $source
      */
+    <<\Facebook\HackTest\DataProvider('simpleDataProvider')>>
     public function testInitialization(string $source): void {
         $source = new \Graphpinator\Source\StringSource($source);
 
@@ -59,7 +60,7 @@ final class SourceTest extends \Facebook\HackTest\HackTest {
 
     public function testLocation(): void {
         $source = new \Graphpinator\Source\StringSource('abcd'.\PHP_EOL.'abcde'.\PHP_EOL.\PHP_EOL.\PHP_EOL.'abc');
-        $lines = dict[1 => 5, 6 => 1, 1 => 1, 1 => 1, 3 => 1];
+        $lines = dict[1 => 5, 2 => 6, 3 => 1, 4 => 1, 5 => 3];
 
         for ($line = 1; $line <= 5; ++$line) {
             for ($column = 1; $column <= $lines[$line]; ++$column) {

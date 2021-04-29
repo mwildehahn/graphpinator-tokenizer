@@ -1,6 +1,6 @@
 namespace Graphpinator\Tokenizer;
 
-use namespace HH\Lib\{C, Vec};
+use namespace HH\Lib\{C, Vec, Str};
 
 final class Tokenizer implements \HH\KeyedIterator<int, ?Token> {
 
@@ -331,19 +331,17 @@ final class Tokenizer implements \HH\KeyedIterator<int, ?Token> {
     }
 
     private function formatBlockString(string $value): string {
-        $lines = \explode(\PHP_EOL, $value);
+        $lines = Str\split($value, \PHP_EOL);
 
         while (\count($lines) > 0) {
-            $first = C\firstx($lines);
-
+            $first = 0;
             if ($lines[$first] === '' || \ctype_space($lines[$first])) {
                 $lines = Vec\drop($lines, 1);
 
                 continue;
             }
 
-            $last = C\lastx($lines);
-
+            $last = C\count($lines) - 1;
             if ($lines[$last] === '' || \ctype_space($lines[$last])) {
                 $lines = Vec\take($lines, C\count($lines) - 1);
 
