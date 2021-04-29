@@ -1,7 +1,3 @@
-<?php
-
-declare(strict_types = 1);
-
 namespace Graphpinator\Tests\Unit\Source;
 
 final class SourceTest extends \PHPUnit\Framework\TestCase

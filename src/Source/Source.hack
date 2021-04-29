@@ -1,7 +1,3 @@
-<?php
-
-declare(strict_types = 1);
-
 namespace Graphpinator\Source;
 
 interface Source extends \Iterator
