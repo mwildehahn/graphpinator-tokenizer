@@ -193,6 +193,8 @@ final class Tokenizer implements \HH\KeyedIterator<int, ?Token> {
                 $this->token = new \Graphpinator\Tokenizer\Token(TokenType::SUBSCRIPTION, $location);
 
                 return;
+
+            default:
         }
 
         switch (\strtolower($value)) {

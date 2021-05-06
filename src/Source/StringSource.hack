@@ -9,7 +9,7 @@ final class StringSource implements \Graphpinator\Source\Source<string> {
     private int $currentColumn = 0;
 
     public function __construct(string $source) {
-        $this->characters = \preg_split('//u', $source, -1, \PREG_SPLIT_NO_EMPTY);
+        $this->characters = vec(\preg_split('//u', $source, -1, \PREG_SPLIT_NO_EMPTY));
         $this->numberOfChars = \count($this->characters);
         $this->rewind();
     }
